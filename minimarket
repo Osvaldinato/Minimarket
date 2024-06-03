@@ -1,0 +1,23 @@
+from item import Item
+
+class Minimarket:
+    def __init__(self, name):
+        self.name = name
+        self.inventory = {}
+
+    def add_item(self, item, quantity):
+        if item.name in self.inventory:
+            self.inventory[item.name].stock += quantity
+        else:
+            self.inventory[item.name] = Item(item.name, item.price, quantity)
+
+    def sell_item(self, item_name, quantity):
+        if item_name not in self.inventory:
+            raise ValueError("Item not found")
+        item = self.inventory[item_name]
+        return item.purchase(quantity)
+
+    def display_inventory(self):
+        print(f"Inventory of {self.name}:")
+        for item in self.inventory.values():
+            print(f"Item: {item.name}, Price: {item.price}, Stock: {item.stock}")
