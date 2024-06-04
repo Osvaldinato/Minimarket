@@ -1,17 +1,4 @@
 import pickle
-
-class Barang:
-    def __init__(self, nama, harga, stok):
-        self.nama = nama
-        self.harga = harga
-        self.stok = stok
-
-    def beli(self, jumlah):
-        if jumlah > self.stok:
-            raise ValueError("Stok tidak cukup")
-        self.stok -= jumlah
-        return self.harga * jumlah
-
 class Minimarket:
     def __init__(self, nama):
         self.nama = nama
@@ -22,18 +9,27 @@ class Minimarket:
         if barang.nama in self.inventaris:
             self.inventaris[barang.nama].stok += jumlah
         else:
-            self.inventaris[barang.nama] = Barang(barang.nama, barang.harga, jumlah)
+            self.inventaris[barang.nama] = barang
 
     def jual_barang(self, nama_barang, jumlah):
         if nama_barang not in self.inventaris:
             raise ValueError("Barang tidak ditemukan")
         barang = self.inventaris[nama_barang]
-        return barang.beli(jumlah)
+        if jumlah > barang.stok:
+            raise ValueError("Stok tidak cukup")
+        barang.stok -= jumlah
+        return barang.harga * jumlah
 
     def tampilkan_inventaris(self):
         print(f"Inventaris {self.nama}:")
         for barang in self.inventaris.values():
-            print(f"Barang: {barang.nama}, Harga: {barang.harga}, Stok: {barang.stok}")
+            print(f"Barang: {barang.nama}, Harga: {int(barang.harga)}, Stok: {barang.stok}")
+
+    def hapus_barang(self, nama_barang):
+        if nama_barang not in self.inventaris:
+            raise ValueError("Barang tidak ditemukan")
+        del self.inventaris[nama_barang]
+        print(f"Barang {nama_barang} telah dihapus dari inventaris.")
 
     def simpan_data(self, nama_file):
         with open(nama_file, 'wb') as file:
@@ -48,12 +44,19 @@ class Minimarket:
         except FileNotFoundError:
             print("File tidak ditemukan. Memulai dengan inventaris kosong.")
 
+class Barang:
+    def __init__(self, nama, harga, stok):
+        self.nama = nama
+        self.harga = harga
+        self.stok = stok
+
 def tampilkan_menu():
     print("\nMenu Minimarket:")
     print("1. Tambah Barang")
     print("2. Lihat Inventaris")
     print("3. Jual Barang")
-    print("4. Keluar")
+    print("4. Hapus Barang")
+    print("5. Keluar")
 
 def tambah_barang_ke_market(market):
     nama = input("Masukkan nama barang: ")
@@ -75,6 +78,13 @@ def jual_barang_dari_market(market):
     except ValueError as e:
         print(e)
 
+def hapus_barang_dari_market(market):
+    nama_barang = input("Masukkan nama barang yang ingin dihapus: ")
+    try:
+        market.hapus_barang(nama_barang)
+    except ValueError as e:
+        print(e)
+
 def main():
     market = Minimarket("Minimarket Lokal")
     
@@ -89,6 +99,8 @@ def main():
         elif pilihan == '3':
             jual_barang_dari_market(market)
         elif pilihan == '4':
+            hapus_barang_dari_market(market)  
+        elif pilihan == '5':
             print("Keluar dari program.")
             market.simpan_data("data_inventaris.pkl")
             break
