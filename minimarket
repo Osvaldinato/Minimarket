@@ -1,23 +1,99 @@
-from item import Item
+import pickle
+
+class Barang:
+    def __init__(self, nama, harga, stok):
+        self.nama = nama
+        self.harga = harga
+        self.stok = stok
+
+    def beli(self, jumlah):
+        if jumlah > self.stok:
+            raise ValueError("Stok tidak cukup")
+        self.stok -= jumlah
+        return self.harga * jumlah
 
 class Minimarket:
-    def __init__(self, name):
-        self.name = name
-        self.inventory = {}
+    def __init__(self, nama):
+        self.nama = nama
+        self.inventaris = {}
+        self.muat_data("data_inventaris.pkl")
 
-    def add_item(self, item, quantity):
-        if item.name in self.inventory:
-            self.inventory[item.name].stock += quantity
+    def tambah_barang(self, barang, jumlah):
+        if barang.nama in self.inventaris:
+            self.inventaris[barang.nama].stok += jumlah
         else:
-            self.inventory[item.name] = Item(item.name, item.price, quantity)
+            self.inventaris[barang.nama] = Barang(barang.nama, barang.harga, jumlah)
 
-    def sell_item(self, item_name, quantity):
-        if item_name not in self.inventory:
-            raise ValueError("Item not found")
-        item = self.inventory[item_name]
-        return item.purchase(quantity)
+    def jual_barang(self, nama_barang, jumlah):
+        if nama_barang not in self.inventaris:
+            raise ValueError("Barang tidak ditemukan")
+        barang = self.inventaris[nama_barang]
+        return barang.beli(jumlah)
 
-    def display_inventory(self):
-        print(f"Inventory of {self.name}:")
-        for item in self.inventory.values():
-            print(f"Item: {item.name}, Price: {item.price}, Stock: {item.stock}")
+    def tampilkan_inventaris(self):
+        print(f"Inventaris {self.nama}:")
+        for barang in self.inventaris.values():
+            print(f"Barang: {barang.nama}, Harga: {barang.harga}, Stok: {barang.stok}")
+
+    def simpan_data(self, nama_file):
+        with open(nama_file, 'wb') as file:
+            pickle.dump(self.inventaris, file)
+        print("Data inventaris telah disimpan.")
+
+    def muat_data(self, nama_file):
+        try:
+            with open(nama_file, 'rb') as file:
+                self.inventaris = pickle.load(file)
+            print("Data inventaris telah dimuat.")
+        except FileNotFoundError:
+            print("File tidak ditemukan. Memulai dengan inventaris kosong.")
+
+def tampilkan_menu():
+    print("\nMenu Minimarket:")
+    print("1. Tambah Barang")
+    print("2. Lihat Inventaris")
+    print("3. Jual Barang")
+    print("4. Keluar")
+
+def tambah_barang_ke_market(market):
+    nama = input("Masukkan nama barang: ")
+    harga = float(input("Masukkan harga barang: "))
+    jumlah = int(input("Masukkan jumlah barang: "))
+    barang = Barang(nama, harga, jumlah)
+    market.tambah_barang(barang, jumlah)
+    print(f"Ditambahkan {jumlah} {nama} ke market.")
+
+def lihat_inventaris(market):
+    market.tampilkan_inventaris()
+
+def jual_barang_dari_market(market):
+    nama_barang = input("Masukkan nama barang: ")
+    jumlah = int(input("Masukkan jumlah yang akan dijual: "))
+    try:
+        biaya = market.jual_barang(nama_barang, jumlah)
+        print(f"Terjual {jumlah} {nama_barang} seharga {biaya}")
+    except ValueError as e:
+        print(e)
+
+def main():
+    market = Minimarket("Minimarket Lokal")
+    
+    while True:
+        tampilkan_menu()
+        pilihan = input("Masukkan pilihan Anda: ")
+        
+        if pilihan == '1':
+            tambah_barang_ke_market(market)
+        elif pilihan == '2':
+            lihat_inventaris(market)
+        elif pilihan == '3':
+            jual_barang_dari_market(market)
+        elif pilihan == '4':
+            print("Keluar dari program.")
+            market.simpan_data("data_inventaris.pkl")
+            break
+        else:
+            print("Pilihan tidak valid. Silakan coba lagi.")
+
+if __name__ == "__main__":
+    main()
